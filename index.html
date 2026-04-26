@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interest Calculator</title>
+
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f1f5f9;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.result {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.primary { background: #2563eb; color: white; }
+.secondary { background: #10b981; color: white; }
+.danger { background: #ef4444; color: white; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background: #e2e8f0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>💰 Interest Calculator</h2>
+
+<div class="card">
+  <div class="grid">
+
+    <div>
+      <label>Lending Date</label>
+      <input type="date" id="start">
+    </div>
+
+    <div>
+      <label>Return Date</label>
+      <input type="date" id="end">
+    </div>
+
+    <div>
+      <label>Principal (Lakhs)</label>
+      <input type="number" id="principal" min="0.1" max="50" step="0.1">
+    </div>
+
+    <div>
+      <label>Interest Rate</label>
+      <select id="rate">
+        <option value="0.12">12%</option>
+        <option value="0.18">18%</option>
+        <option value="0.24">24%</option>
+      </select>
+    </div>
+
+    <div class="result">Interest: ₹ <span id="interest">0</span></div>
+    <div class="result">Monthly: ₹ <span id="monthly">0</span></div>
+    <div class="result">Total : ₹ <span id="totalYear">0</span></div>
+
+  </div>
+
+  <button class="primary" onclick="calculate()">Calculate</button>
+  <button class="secondary" onclick="addEntry()">Add / Update</button>
+</div>
+
+<div class="card">
+  <h3>📈 Summary</h3>
+  <p>Total Investment: ₹ <span id="totalPrincipal">0</span></p>
+  <p>Total Interest: ₹ <span id="totalInterest">0</span></p>
+  <p>Total Returns: ₹ <span id="totalReturn">0</span></p>
+</div>
+
+<div class="card">
+  <h3>📊 Loan Records</h3>
+  <button class="primary" onclick="exportToExcel()">Export</button>
+
+  <table id="ledgerTable" border="1">
+    <thead>
+      <tr>
+        <th>Start</th>
+        <th>End</th>
+        <th>Principal</th>
+        <th>Rate</th>
+        <th>Interest</th>
+        <th>Monthly</th>
+        <th>Total Y</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+
+let records = JSON.parse(localStorage.getItem("loanData")) || [];
+let editIndex = -1;
+
+window.onload = function() {
+  renderTable();
+  updateSummary();
+};
+
+function calculate() {
+  let start = new Date(document.getElementById("start").value);
+  let end = new Date(document.getElementById("end").value);
+
+  if (!start || !end) return alert("Select dates");
+
+  let days = (end - start) / (1000*60*60*24);
+  if (days <= 0) return alert("Invalid date");
+
+  let years = days / 365;
+
+  let p = parseFloat(document.getElementById("principal").value);
+  if (isNaN(p) || p < 0.1 || p > 50) return alert("Invalid principal");
+
+  let principal = p * 100000;
+  let rate = parseFloat(document.getElementById("rate").value);
+
+  let interest = principal * rate * years;
+  let monthly = interest / 12;
+
+  document.getElementById("interest").innerText = interest.toFixed(0);
+  document.getElementById("monthly").innerText = monthly.toFixed(0);
+  document.getElementById("totalYear").innerText = (principal + interest).toFixed(0);
+}
+
+function addEntry() {
+  let record = {
+    start: start.value,
+    end: end.value,
+    principal: principal.value,
+    rate: rate.value,
+    interest: interest.innerText,
+    monthly: monthly.innerText,
+    totalYear: totalYear.innerText
+  };
+
+  if (!record.interest || record.interest == "0") return alert("Calculate first");
+
+  if (editIndex === -1) records.push(record);
+  else { records[editIndex] = record; editIndex = -1; }
+
+  localStorage.setItem("loanData", JSON.stringify(records));
+
+  renderTable();
+  updateSummary();
+}
+
+function renderTable() {
+  let tbody = document.querySelector("#ledgerTable tbody");
+  tbody.innerHTML = "";
+
+  records.forEach((r,i) => {
+    tbody.innerHTML += `
+    <tr>
+      <td>${r.start}</td>
+      <td>${r.end}</td>
+      <td>${r.principal} L</td>
+      <td>${r.rate*100}%</td>
+      <td>${r.interest}</td>
+      <td>${r.monthly}</td>
+      <td>${r.totalYear}</td>
+      <td>
+        <button onclick="editRow(${i})">Edit</button>
+        <button class="danger" onclick="deleteRow(${i})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function deleteRow(i) {
+  records.splice(i,1);
+  localStorage.setItem("loanData", JSON.stringify(records));
+  renderTable();
+  updateSummary();
+}
+
+function editRow(i) {
+  let r = records[i];
+  start.value = r.start;
+  end.value = r.end;
+  principal.value = r.principal;
+  rate.value = r.rate;
+
+  interest.innerText = r.interest;
+  monthly.innerText = r.monthly;
+  totalYear.innerText = r.totalYear;
+
+  editIndex = i;
+}
+
+function updateSummary() {
+  let p=0,i=0;
+
+  records.forEach(r=>{
+    p += r.principal*100000;
+    i += parseFloat(r.interest);
+  });
+
+  totalPrincipal.innerText = p.toFixed(0);
+  totalInterest.innerText = i.toFixed(0);
+  totalReturn.innerText = (p+i).toFixed(0);
+}
+
+function exportToExcel() {
+  let csv = "Start,End,Principal,Rate,Interest,Monthly,TotalY\n";
+
+  records.forEach(r=>{
+    csv += `${r.start},${r.end},${r.principal},${r.rate*100},${r.interest},${r.monthly},${r.totalYear}\n`;
+  });
+
+  let blob = new Blob([csv]);
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "data.csv";
+  a.click();
+}
+
+</script>
+
+</body>
+</html>
