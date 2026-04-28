@@ -2,251 +2,260 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Interest Calculator</title>
+<title>Finance App</title>
 
 <style>
 body {
-  font-family: Arial;
-  background: #f1f5f9;
-  padding: 20px;
+  font-family: 'Segoe UI';
+  background: #0f172a;
+  color: white;
+  margin: 0;
 }
+
+.header {
+  padding: 20px;
+  background: linear-gradient(135deg,#2563eb,#9333ea);
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
-}
-.card {
-  background: white;
   padding: 20px;
-  border-radius: 10px;
+}
+
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 15px;
   margin-bottom: 20px;
 }
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2,1fr);
   gap: 15px;
 }
+
 input, select {
-  padding: 10px;
-  width: 100%;
-}
-button {
-  padding: 10px;
-  margin-top: 10px;
-  background: blue;
-  color: white;
+  padding: 12px;
+  border-radius: 8px;
   border: none;
 }
-.result {
-  background: #eef;
-  padding: 10px;
+
+button {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  margin-top: 10px;
+  cursor: pointer;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+
+.stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
 }
-th, td {
-  padding: 10px;
-  border: 1px solid #ccc;
+
+.stat {
+  flex:1;
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
   text-align: center;
 }
+
+table {
+  width:100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #334155;
+  text-align: center;
+}
+
 </style>
 </head>
 
 <body>
 
+<div class="header">Finance Interest App</div>
+
 <div class="container">
 
-<h2>Interest Calculator</h2>
+<div class="stats">
+<div class="stat">Investment<br>₹ <span id="totalInvest">0</span></div>
+<div class="stat">Interest<br>₹ <span id="totalInterest">0</span></div>
+<div class="stat">Returns<br>₹ <span id="totalReturn">0</span></div>
+</div>
 
 <div class="card">
 <div class="grid">
 
-<div>
-<label>Lending Date</label>
 <input type="date" id="start">
-</div>
-
-<div>
-<label>Return Date</label>
 <input type="date" id="end">
-</div>
 
-<div>
-<label>Principal (Lakhs)</label>
-<input type="number" id="principal">
-</div>
+<input type="number" id="principal" placeholder="Principal (Lakhs)">
 
-<div>
-<label>Interest Rate</label>
 <select id="rate">
 <option value="0.12">12%</option>
 <option value="0.18">18%</option>
 <option value="0.24">24%</option>
 </select>
-</div>
 
-<div>
-<label>Interest Type</label>
 <select id="type">
-<option value="simple">Simple Interest</option>
-<option value="compound">Compound Interest</option>
+<option value="simple">Simple</option>
+<option value="compound">Compound</option>
 </select>
-</div>
 
-<div class="result">Interest: ₹ <span id="interest">0</span></div>
-<div class="result">Monthly: ₹ <span id="monthly">0</span></div>
-<div class="result">Total: ₹ <span id="totalYear">0</span></div>
+<select id="compoundType">
+<option value="yearly">Yearly</option>
+<option value="monthly">Monthly</option>
+</select>
 
 </div>
 
 <button onclick="calculate()">Calculate</button>
-<button onclick="addEntry()">Add / Update</button>
+<button onclick="addEntry()">Add Entry</button>
+
+<div>
+Interest: ₹ <span id="interest">0</span><br>
+Monthly: ₹ <span id="monthly">0</span><br>
+Total: ₹ <span id="totalYear">0</span>
+</div>
+
 </div>
 
 <div class="card">
-<h3>Loan Records</h3>
-<button onclick="exportToExcel()">Export</button>
 
-<table id="ledgerTable">
+<button onclick="exportData()">Export</button>
+
+<table>
 <thead>
 <tr>
-<th>Start</th>
-<th>End</th>
 <th>Principal</th>
-<th>Rate</th>
 <th>Type</th>
 <th>Interest</th>
 <th>Total</th>
 <th>Action</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="table"></tbody>
+
 </table>
+
 </div>
 
 </div>
 
 <script>
 
-let records = [];
-let editIndex = -1;
+let data = [];
 
-function calculate() {
+function calculate(){
 
-  let startVal = document.getElementById("start").value;
-  let endVal = document.getElementById("end").value;
+let p = parseFloat(document.getElementById("principal").value);
+if(!p) return alert("Enter principal");
 
-  if (!startVal || !endVal) return alert("Select dates");
+let principal = p * 100000;
 
-  let days = (new Date(endVal) - new Date(startVal)) / (1000*60*60*24);
-  if (days <= 0) return alert("Invalid date");
+let rate = parseFloat(document.getElementById("rate").value);
+let type = document.getElementById("type").value;
+let compType = document.getElementById("compoundType").value;
 
-  let years = days / 365;
+let start = new Date(document.getElementById("start").value);
+let end = new Date(document.getElementById("end").value);
 
-  let input = document.getElementById("principal").value.trim();
-  if (!input) return alert("Enter principal");
+let years = (end - start)/(1000*60*60*24*365);
 
-  let p = parseFloat(input);
-  if (isNaN(p) || p <= 0) return alert("Invalid principal");
+let interest;
 
-  let principalAmt = p * 100000;
-  let rate = parseFloat(document.getElementById("rate").value);
-  let type = document.getElementById("type").value;
-
-  let interest;
-
-  if (type === "compound") {
-    let amount = principalAmt * Math.pow((1 + rate), years);
-    interest = amount - principalAmt;
+if(type==="compound"){
+  if(compType==="monthly"){
+    let n=12;
+    let amount = principal * Math.pow(1 + rate/n, n*years);
+    interest = amount - principal;
   } else {
-    interest = principalAmt * rate * years;
+    let amount = principal * Math.pow(1 + rate, years);
+    interest = amount - principal;
   }
-
-  let monthly = interest / 12;
-  let total = principalAmt + interest;
-
-  document.getElementById("interest").innerText = interest.toFixed(0);
-  document.getElementById("monthly").innerText = monthly.toFixed(0);
-  document.getElementById("totalYear").innerText = total.toFixed(0);
+} else {
+  interest = principal * rate * years;
 }
 
-function addEntry() {
+document.getElementById("interest").innerText = interest.toFixed(0);
+document.getElementById("monthly").innerText = (interest/12).toFixed(0);
+document.getElementById("totalYear").innerText = (principal+interest).toFixed(0);
 
-  if (document.getElementById("interest").innerText === "0") {
-    alert("Calculate first");
-    return;
-  }
-
-  let record = {
-    start: document.getElementById("start").value,
-    end: document.getElementById("end").value,
-    principal: document.getElementById("principal").value,
-    rate: document.getElementById("rate").value,
-    type: document.getElementById("type").value,
-    interest: document.getElementById("interest").innerText,
-    total: document.getElementById("totalYear").innerText
-  };
-
-  if (editIndex === -1) records.push(record);
-  else { records[editIndex] = record; editIndex = -1; }
-
-  renderTable();
 }
 
-function renderTable() {
-  let tbody = document.querySelector("#ledgerTable tbody");
-  tbody.innerHTML = "";
+function addEntry(){
 
-  records.forEach((r,i) => {
-    tbody.innerHTML += `
-    <tr>
-      <td>${r.start}</td>
-      <td>${r.end}</td>
-      <td>${r.principal} L</td>
-      <td>${r.rate*100}%</td>
-      <td>${r.type}</td>
-      <td>${r.interest}</td>
-      <td>${r.total}</td>
-      <td>
-        <button onclick="editRow(${i})">Edit</button>
-        <button onclick="deleteRow(${i})">Delete</button>
-      </td>
-    </tr>`;
-  });
+let record = {
+principal: document.getElementById("principal").value,
+type: document.getElementById("type").value,
+interest: document.getElementById("interest").innerText,
+total: document.getElementById("totalYear").innerText
+};
+
+data.push(record);
+render();
+
 }
 
-function deleteRow(i) {
-  records.splice(i,1);
-  renderTable();
+function render(){
+
+let table = document.getElementById("table");
+table.innerHTML="";
+
+let totalInvest=0,totalInterest=0,totalReturn=0;
+
+data.forEach((r,i)=>{
+table.innerHTML += `
+<tr>
+<td>${r.principal}L</td>
+<td>${r.type}</td>
+<td>${r.interest}</td>
+<td>${r.total}</td>
+<td><button onclick="del(${i})">X</button></td>
+</tr>`;
+
+totalInvest += r.principal*100000;
+totalInterest += parseFloat(r.interest);
+totalReturn += parseFloat(r.total);
+
+});
+
+document.getElementById("totalInvest").innerText = totalInvest.toFixed(0);
+document.getElementById("totalInterest").innerText = totalInterest.toFixed(0);
+document.getElementById("totalReturn").innerText = totalReturn.toFixed(0);
+
 }
 
-function editRow(i) {
-  let r = records[i];
-
-  document.getElementById("start").value = r.start;
-  document.getElementById("end").value = r.end;
-  document.getElementById("principal").value = r.principal;
-  document.getElementById("rate").value = r.rate;
-  document.getElementById("type").value = r.type;
-
-  document.getElementById("interest").innerText = r.interest;
-  document.getElementById("totalYear").innerText = r.total;
-
-  editIndex = i;
+function del(i){
+data.splice(i,1);
+render();
 }
 
-function exportToExcel() {
-  let csv = "Start,End,Principal,Rate,Type,Interest,Total\n";
+function exportData(){
 
-  records.forEach(r=>{
-    csv += `${r.start},${r.end},${r.principal},${r.rate*100},${r.type},${r.interest},${r.total}\n`;
-  });
+let csv="Principal,Type,Interest,Total\n";
+data.forEach(r=>{
+csv+=`${r.principal},${r.type},${r.interest},${r.total}\n`;
+});
 
-  let blob = new Blob([csv]);
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "data.csv";
-  a.click();
+let blob=new Blob([csv]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="data.csv";
+a.click();
+
 }
 
 </script>
