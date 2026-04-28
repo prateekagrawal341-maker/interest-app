@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance Tracker</title>
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <style>
 body {
   font-family: 'Segoe UI';
@@ -13,48 +15,52 @@ body {
   margin: 0;
 }
 
+/* HEADER */
 .header {
   background: linear-gradient(135deg,#2563eb,#9333ea);
-  padding: 15px;
+  padding: 16px;
   text-align: center;
   font-weight: bold;
+  font-size: 18px;
 }
 
+/* LAYOUT */
 .container {
   padding: 15px;
   padding-bottom: 80px;
 }
 
+/* CARD */
 .card {
   background: #1e293b;
-  padding: 15px;
-  border-radius: 15px;
-  margin-bottom: 15px;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
+/* INPUT */
 input, select {
   width: 100%;
-  padding: 12px;
+  padding: 13px;
   margin-top: 6px;
   border-radius: 10px;
   border: none;
 }
 
+/* BUTTON */
 button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   margin-top: 10px;
   border-radius: 10px;
   border: none;
   background: #2563eb;
   color: white;
+  font-size: 15px;
 }
 
-table button {
-  width: auto;
-  padding: 6px 10px;
-}
-
+/* TABLE */
 table {
   width:100%;
   border-collapse: collapse;
@@ -66,10 +72,26 @@ th, td {
   text-align:center;
 }
 
-tr:hover {
-  background: #334155;
+table button {
+  width:auto;
+  padding:6px 10px;
 }
 
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 10px;
+}
+
+.stat {
+  background: #2563eb;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* NAV */
 .nav {
   position: fixed;
   bottom: 0;
@@ -83,7 +105,6 @@ tr:hover {
   background:none;
   border:none;
   color:#cbd5f5;
-  padding:10px;
 }
 
 .nav button.active {
@@ -103,39 +124,31 @@ tr:hover {
 
 <div class="card">
 
-<label>Name</label>
-<input type="text" id="name">
+<input type="text" id="name" placeholder="Name">
 
-<label>Start Date</label>
 <input type="date" id="start">
-
-<label>End Date</label>
 <input type="date" id="end">
 
-<label>Principal (Lakhs)</label>
-<input type="number" id="principal">
+<input type="number" id="principal" placeholder="Principal (Lakhs)">
 
-<label>Rate</label>
 <select id="rate">
 <option value="0.12">12%</option>
 <option value="0.18">18%</option>
 <option value="0.24">24%</option>
 </select>
 
-<label>Interest Type</label>
 <select id="type">
 <option value="simple">Simple</option>
 <option value="compound">Compound</option>
 </select>
 
-<label>Status</label>
 <select id="status">
 <option value="pending">Pending</option>
 <option value="paid">Paid</option>
 </select>
 
 <button onclick="calculate()">Calculate</button>
-<button onclick="addEntry()">Add Entry</button>
+<button onclick="saveEntry()">Add / Update</button>
 
 </div>
 
@@ -153,17 +166,26 @@ Total ₹ <span id="total">0</span>
 <table>
 <thead>
 <tr>
-<th>Name</th>
-<th>P</th>
-<th>Type</th>
-<th>Status</th>
-<th>Total</th>
-<th>X</th>
+<th>Name</th><th>P</th><th>Type</th><th>Status</th><th>Total</th><th>Action</th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
 </table>
 </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="summary" style="display:none">
+
+<div class="stats">
+<div class="stat">Invest ₹ <span id="totalInvest">0</span></div>
+<div class="stat">Return ₹ <span id="totalReturn">0</span></div>
+<div class="stat">Pending ₹ <span id="pendingAmt">0</span></div>
+<div class="stat">Paid ₹ <span id="paidAmt">0</span></div>
+</div>
+
+<canvas id="chart" width="300" height="200"></canvas>
+
 </div>
 
 </div>
@@ -172,18 +194,20 @@ Total ₹ <span id="total">0</span>
 <div class="nav">
 <button onclick="showPage('home',this)" class="active">Home</button>
 <button onclick="showPage('records',this)">Records</button>
+<button onclick="showPage('summary',this)">Summary</button>
 </div>
 
 <script>
 
 let data = JSON.parse(localStorage.getItem("financeData")) || [];
+let editIndex = -1;
 
 function saveData(){
 localStorage.setItem("financeData", JSON.stringify(data));
 }
 
 function showPage(page,btn){
-["home","records"].forEach(p=>{
+["home","records","summary"].forEach(p=>{
 document.getElementById(p).style.display="none";
 });
 document.getElementById(page).style.display="block";
@@ -194,44 +218,50 @@ btn.classList.add("active");
 
 function calculate(){
 
-let p = parseFloat(document.getElementById("principal").value || 0);
-let rate = parseFloat(document.getElementById("rate").value);
-let type = document.getElementById("type").value;
+let p=parseFloat(document.getElementById("principal").value || 0);
+let rate=parseFloat(document.getElementById("rate").value);
+let type=document.getElementById("type").value;
 
-let start = new Date(document.getElementById("start").value);
-let end = new Date(document.getElementById("end").value);
+let start=new Date(document.getElementById("start").value);
+let end=new Date(document.getElementById("end").value);
 
-let years = (end - start) / (1000*60*60*24*365);
-if(isNaN(years) || years <= 0) return alert("Invalid dates");
+let years=(end-start)/(1000*60*60*24*365);
+if(isNaN(years)||years<=0) return alert("Invalid dates");
 
-let principalAmt = p * 100000;
+let principalAmt=p*100000;
 let interest;
 
-if(type === "compound"){
-  interest = principalAmt * Math.pow((1 + rate), years) - principalAmt;
+if(type==="compound"){
+interest=principalAmt*Math.pow(1+rate,years)-principalAmt;
 }else{
-  interest = principalAmt * rate * years;
+interest=principalAmt*rate*years;
 }
 
-let monthly = interest / (years * 12);
+let monthly=interest/(years*12);
 
-document.getElementById("interest").innerText = interest.toFixed(0);
-document.getElementById("monthly").innerText = monthly.toFixed(0);
-document.getElementById("total").innerText = (principalAmt + interest).toFixed(0);
+interestEl.innerText=interest.toFixed(0);
+monthlyEl.innerText=monthly.toFixed(0);
+totalEl.innerText=(principalAmt+interest).toFixed(0);
 
 }
 
-function addEntry(){
+function saveEntry(){
 
 let record={
-name: document.getElementById("name").value || "No Name",
-principal: parseFloat(document.getElementById("principal").value || 0),
-type: document.getElementById("type").value,
-status: document.getElementById("status").value,
-total: parseFloat(document.getElementById("total").innerText || 0)
+name: name.value || "No Name",
+principal: parseFloat(principal.value||0),
+type: type.value,
+status: status.value,
+total: parseFloat(totalEl.innerText||0)
 };
 
+if(editIndex===-1){
 data.push(record);
+}else{
+data[editIndex]=record;
+editIndex=-1;
+}
+
 saveData();
 render();
 
@@ -242,6 +272,8 @@ function render(){
 let table=document.getElementById("table");
 table.innerHTML="";
 
+let ti=0,tr=0,pending=0,paid=0;
+
 data.forEach((r,i)=>{
 table.innerHTML+=`
 <tr>
@@ -250,10 +282,37 @@ table.innerHTML+=`
 <td>${r.type}</td>
 <td style="color:${r.status==='paid'?'#22c55e':'#f59e0b'}">${r.status}</td>
 <td>${r.total}</td>
-<td><button onclick="del(${i})">X</button></td>
+<td>
+<button onclick="edit(${i})">Edit</button>
+<button onclick="del(${i})">X</button>
+</td>
 </tr>`;
+
+ti+=r.principal*100000;
+tr+=r.total;
+
+if(r.status==="pending") pending+=r.total;
+else paid+=r.total;
+
 });
 
+totalInvest.innerText=ti.toFixed(0);
+totalReturn.innerText=tr.toFixed(0);
+pendingAmt.innerText=pending.toFixed(0);
+paidAmt.innerText=paid.toFixed(0);
+
+drawChart(ti,tr);
+
+}
+
+function edit(i){
+let r=data[i];
+name.value=r.name;
+principal.value=r.principal;
+type.value=r.type;
+status.value=r.status;
+editIndex=i;
+showPage('home',document.querySelectorAll(".nav button")[0]);
 }
 
 function del(i){
@@ -261,6 +320,29 @@ data.splice(i,1);
 saveData();
 render();
 }
+
+function drawChart(invest,ret){
+
+let ctx=document.getElementById("chart").getContext("2d");
+ctx.clearRect(0,0,300,200);
+
+let total=invest+ret;
+if(total===0) return;
+
+let h1=(invest/total)*150;
+let h2=(ret/total)*150;
+
+ctx.fillStyle="#2563eb";
+ctx.fillRect(50,200-h1,50,h1);
+
+ctx.fillStyle="#22c55e";
+ctx.fillRect(150,200-h2,50,h2);
+
+}
+
+let interestEl=document.getElementById("interest");
+let monthlyEl=document.getElementById("monthly");
+let totalEl=document.getElementById("total");
 
 render();
 
