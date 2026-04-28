@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance App</title>
 
-<!-- Icons -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
-
 body {
   font-family: 'Segoe UI';
   background: #0f172a;
@@ -17,7 +15,6 @@ body {
   margin: 0;
 }
 
-/* HEADER */
 .header {
   position: sticky;
   top: 0;
@@ -25,56 +22,41 @@ body {
   padding: 15px;
   text-align: center;
   font-weight: bold;
-  font-size: 18px;
 }
 
-/* CONTAINER */
 .container {
   padding: 15px;
   padding-bottom: 80px;
 }
 
-/* CARD */
 .card {
   background: #1e293b;
   padding: 15px;
   border-radius: 15px;
   margin-bottom: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  animation: fadeIn 0.4s ease;
 }
 
-/* INPUTS */
 input, select {
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   margin-top: 6px;
   border-radius: 10px;
   border: none;
-  font-size: 15px;
 }
 
-/* BUTTON */
 button {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   margin-top: 10px;
   border-radius: 10px;
   border: none;
   background: #2563eb;
   color: white;
-  font-size: 15px;
-  transition: 0.2s;
 }
 
-button:active {
-  transform: scale(0.96);
-}
-
-/* STATS */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns: repeat(2,1fr);
   gap: 10px;
 }
 
@@ -91,7 +73,6 @@ button:active {
   font-weight:bold;
 }
 
-/* TABLE */
 table {
   width:100%;
   border-collapse: collapse;
@@ -103,14 +84,16 @@ th, td {
   text-align:center;
 }
 
-/* NAVBAR */
+.overdue {
+  background: #7f1d1d !important;
+}
+
 .nav {
   position: fixed;
   bottom: 0;
   width: 100%;
   display: flex;
   background: #1e293b;
-  border-top: 1px solid #334155;
 }
 
 .nav button {
@@ -119,31 +102,17 @@ th, td {
   border:none;
   color:#cbd5f5;
   padding:10px;
-  font-size:12px;
 }
 
 .nav button.active {
   color:white;
 }
-
-/* ICON */
-.icon {
-  display:block;
-  font-size:22px;
-}
-
-/* ANIMATION */
-@keyframes fadeIn {
-  from {opacity:0; transform:translateY(10px);}
-  to {opacity:1; transform:translateY(0);}
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="header">Finance App</div>
+<div class="header">Finance Tracker</div>
 
 <div class="container">
 
@@ -151,6 +120,10 @@ th, td {
 <div id="home">
 
 <div class="card">
+
+<label>Name (optional)</label>
+<input type="text" id="name">
+
 <label>Start Date</label>
 <input type="date" id="start">
 
@@ -167,16 +140,10 @@ th, td {
 <option value="0.24">24%</option>
 </select>
 
-<label>Type</label>
-<select id="type">
-<option value="simple">Simple</option>
-<option value="compound">Compound</option>
-</select>
-
-<label>Compounding</label>
-<select id="compoundType">
-<option value="yearly">Yearly</option>
-<option value="monthly">Monthly</option>
+<label>Status</label>
+<select id="status">
+<option value="pending">Pending</option>
+<option value="paid">Paid</option>
 </select>
 
 <button onclick="calculate()">Calculate</button>
@@ -185,10 +152,8 @@ th, td {
 </div>
 
 <div class="card">
-<h3>Result</h3>
 Interest ₹ <span id="interest">0</span><br>
-Monthly ₹ <span id="monthly">0</span><br>
-Total ₹ <span id="totalYear">0</span>
+Total ₹ <span id="total">0</span>
 </div>
 
 </div>
@@ -199,7 +164,11 @@ Total ₹ <span id="totalYear">0</span>
 <table>
 <thead>
 <tr>
-<th>P</th><th>Type</th><th>Int</th><th>Total</th><th>X</th>
+<th>Name</th>
+<th>P</th>
+<th>Status</th>
+<th>Total</th>
+<th>X</th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
@@ -211,12 +180,11 @@ Total ₹ <span id="totalYear">0</span>
 <div id="summary" style="display:none">
 
 <div class="stats">
-<div class="stat">Invest<span id="totalInvest">0</span></div>
-<div class="stat">Interest<span id="totalInterest">0</span></div>
-<div class="stat">Return<span id="totalReturn">0</span></div>
+<div class="stat">Pending ₹ <span id="pendingAmt">0</span></div>
+<div class="stat">Paid ₹ <span id="paidAmt">0</span></div>
+<div class="stat">Total Invest ₹ <span id="totalInvest">0</span></div>
+<div class="stat">Total Return ₹ <span id="totalReturn">0</span></div>
 </div>
-
-<canvas id="chart" width="300" height="200"></canvas>
 
 </div>
 
@@ -224,20 +192,9 @@ Total ₹ <span id="totalYear">0</span>
 
 <!-- NAV -->
 <div class="nav">
-<button onclick="showPage('home', this)" class="active">
-<span class="material-icons icon">home</span>
-Home
-</button>
-
-<button onclick="showPage('records', this)">
-<span class="material-icons icon">list</span>
-Records
-</button>
-
-<button onclick="showPage('summary', this)">
-<span class="material-icons icon">analytics</span>
-Summary
-</button>
+<button onclick="showPage('home',this)" class="active">Home</button>
+<button onclick="showPage('records',this)">Records</button>
+<button onclick="showPage('summary',this)">Summary</button>
 </div>
 
 <script>
@@ -245,15 +202,13 @@ Summary
 let data = JSON.parse(localStorage.getItem("financeData")) || [];
 
 function saveData(){
-  localStorage.setItem("financeData", JSON.stringify(data));
+localStorage.setItem("financeData", JSON.stringify(data));
 }
 
-function showPage(page, btn){
-
+function showPage(page,btn){
 ["home","records","summary"].forEach(p=>{
 document.getElementById(p).style.display="none";
 });
-
 document.getElementById(page).style.display="block";
 
 document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
@@ -262,47 +217,24 @@ btn.classList.add("active");
 
 function calculate(){
 
-let p=parseFloat(document.getElementById("principal").value);
-if(!p) return alert("Enter principal");
+let p=parseFloat(principal.value || 0);
+let rate=parseFloat(rateEl.value || 0.12);
 
-let principalAmt=p*100000;
-
-let rate=parseFloat(document.getElementById("rate").value);
-let type=document.getElementById("type").value;
-let compType=document.getElementById("compoundType").value;
-
-let startDate=new Date(document.getElementById("start").value);
-let endDate=new Date(document.getElementById("end").value);
-
-let years=(endDate-startDate)/(1000*60*60*24*365);
-if(isNaN(years)||years<=0) return alert("Invalid dates");
-
-let interest;
-
-if(type==="compound"){
-if(compType==="monthly"){
-let n=12;
-interest=principalAmt*Math.pow(1+rate/n,n*years)-principalAmt;
-}else{
-interest=principalAmt*Math.pow(1+rate,years)-principalAmt;
-}
-}else{
-interest=principalAmt*rate*years;
-}
+let interest = p*100000*rate;
 
 document.getElementById("interest").innerText=interest.toFixed(0);
-document.getElementById("monthly").innerText=(interest/12).toFixed(0);
-document.getElementById("totalYear").innerText=(principalAmt+interest).toFixed(0);
+document.getElementById("total").innerText=(p*100000+interest).toFixed(0);
 
 }
 
 function addEntry(){
 
 let record={
-principal:parseFloat(document.getElementById("principal").value),
-type:document.getElementById("type").value,
-interest:parseFloat(document.getElementById("interest").innerText),
-total:parseFloat(document.getElementById("totalYear").innerText)
+name:name.value || "No Name",
+principal:parseFloat(principal.value || 0),
+status:status.value,
+total:parseFloat(document.getElementById("total").innerText || 0),
+end:end.value
 };
 
 data.push(record);
@@ -316,28 +248,38 @@ function render(){
 let table=document.getElementById("table");
 table.innerHTML="";
 
-let ti=0,ti2=0,tr=0;
+let pending=0,paid=0,totalInvest=0,totalReturn=0;
+
+let today=new Date();
 
 data.forEach((r,i)=>{
+
+let overdueClass="";
+if(r.status==="pending" && r.end && new Date(r.end)<today){
+overdueClass="overdue";
+}
+
 table.innerHTML+=`
-<tr>
+<tr class="${overdueClass}">
+<td>${r.name}</td>
 <td>${r.principal}</td>
-<td>${r.type}</td>
-<td>${r.interest}</td>
+<td>${r.status}</td>
 <td>${r.total}</td>
 <td><button onclick="del(${i})">X</button></td>
 </tr>`;
 
-ti+=r.principal*100000;
-ti2+=r.interest;
-tr+=r.total;
+totalInvest += r.principal*100000;
+totalReturn += r.total;
+
+if(r.status==="pending") pending+=r.total;
+else paid+=r.total;
+
 });
 
-document.getElementById("totalInvest").innerText=ti.toFixed(0);
-document.getElementById("totalInterest").innerText=ti2.toFixed(0);
-document.getElementById("totalReturn").innerText=tr.toFixed(0);
-
-drawChart(ti,ti2);
+pendingAmt.innerText=pending.toFixed(0);
+paidAmt.innerText=paid.toFixed(0);
+totalInvest.innerText=totalInvest.toFixed(0);
+totalReturn.innerText=totalReturn.toFixed(0);
 
 }
 
@@ -347,28 +289,7 @@ saveData();
 render();
 }
 
-function drawChart(invest,interest){
-
-let ctx=document.getElementById("chart").getContext("2d");
-
-ctx.clearRect(0,0,300,200);
-
-let total=invest+interest;
-if(total===0) return;
-
-let investH=(invest/total)*150;
-let intH=(interest/total)*150;
-
-ctx.fillStyle="#2563eb";
-ctx.fillRect(50,200-investH,50,investH);
-
-ctx.fillStyle="#22c55e";
-ctx.fillRect(150,200-intH,50,intH);
-
-ctx.fillStyle="white";
-ctx.fillText("Invest",50,190);
-ctx.fillText("Profit",150,190);
-}
+let rateEl=document.getElementById("rate");
 
 render();
 
