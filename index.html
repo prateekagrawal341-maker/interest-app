@@ -154,7 +154,6 @@ Total ₹ <span id="totalYear">0</span>
 
 <!-- RECORDS -->
 <div id="records" style="display:none">
-
 <div class="card">
 <table>
 <thead>
@@ -165,7 +164,6 @@ Total ₹ <span id="totalYear">0</span>
 <tbody id="table"></tbody>
 </table>
 </div>
-
 </div>
 
 <!-- SUMMARY -->
@@ -177,11 +175,13 @@ Total ₹ <span id="totalYear">0</span>
 <div class="stat">Return<span id="totalReturn">0</span></div>
 </div>
 
-</div>
+<canvas id="chart" width="300" height="200"></canvas>
 
 </div>
 
-<!-- NAVIGATION -->
+</div>
+
+<!-- NAV -->
 <div class="nav">
 <button onclick="show('home')">Home</button>
 <button onclick="show('records')">Records</button>
@@ -190,14 +190,17 @@ Total ₹ <span id="totalYear">0</span>
 
 <script>
 
-let data=[];
+let data = JSON.parse(localStorage.getItem("financeData")) || [];
+
+function saveData(){
+  localStorage.setItem("financeData", JSON.stringify(data));
+}
 
 function show(page){
-document.getElementById("home").style.display="none";
-document.getElementById("records").style.display="none";
-document.getElementById("summary").style.display="none";
-
-document.getElementById(page).style.display="block";
+  home.style.display="none";
+  records.style.display="none";
+  summary.style.display="none";
+  document.getElementById(page).style.display="block";
 }
 
 function calculate(){
@@ -207,7 +210,7 @@ if(!p) return alert("Enter principal");
 
 let principalAmt=p*100000;
 
-let rate=parseFloat(rateEl.value);
+let rate=parseFloat(rate.value);
 let type=document.getElementById("type").value;
 let compType=document.getElementById("compoundType").value;
 
@@ -239,13 +242,14 @@ totalYear.innerText=(principalAmt+interest).toFixed(0);
 function addEntry(){
 
 let record={
-principal:principal.value,
+principal:parseFloat(principal.value),
 type:type.value,
-interest:interestEl.innerText,
-total:totalYear.innerText
+interest:parseFloat(interestEl.innerText),
+total:parseFloat(totalYear.innerText)
 };
 
 data.push(record);
+saveData();
 render();
 
 }
@@ -267,24 +271,51 @@ table.innerHTML+=`
 </tr>`;
 
 ti+=r.principal*100000;
-ti2+=parseFloat(r.interest);
-tr+=parseFloat(r.total);
+ti2+=r.interest;
+tr+=r.total;
 });
 
 totalInvest.innerText=ti.toFixed(0);
 totalInterest.innerText=ti2.toFixed(0);
 totalReturn.innerText=tr.toFixed(0);
 
+drawChart(ti,ti2);
+
 }
 
 function del(i){
 data.splice(i,1);
+saveData();
 render();
 }
 
+function drawChart(invest,interest){
+
+let ctx = document.getElementById("chart").getContext("2d");
+
+ctx.clearRect(0,0,300,200);
+
+let total=invest+interest;
+
+let investH=(invest/total)*150;
+let intH=(interest/total)*150;
+
+ctx.fillStyle="#2563eb";
+ctx.fillRect(50,200-investH,50,investH);
+
+ctx.fillStyle="#22c55e";
+ctx.fillRect(150,200-intH,50,intH);
+
+ctx.fillStyle="white";
+ctx.fillText("Invest",50,190);
+ctx.fillText("Profit",150,190);
+}
+
 // shortcuts
-let rateEl=document.getElementById("rate");
 let interestEl=document.getElementById("interest");
+
+// load data
+render();
 
 </script>
 
