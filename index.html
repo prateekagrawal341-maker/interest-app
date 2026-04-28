@@ -22,7 +22,7 @@ body {
 
 .container {
   padding: 15px;
-  padding-bottom: 80px;
+  padding-bottom: 100px;
 }
 
 .card {
@@ -30,6 +30,13 @@ body {
   padding: 16px;
   border-radius: 16px;
   margin-bottom: 16px;
+}
+
+label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 10px;
+  display: block;
 }
 
 input, select {
@@ -82,9 +89,11 @@ table button {
 .nav {
   position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
   display: flex;
   background: #1e293b;
+  border-top: 1px solid #334155;
 }
 
 .nav button {
@@ -92,6 +101,7 @@ table button {
   background:none;
   border:none;
   color:#cbd5f5;
+  padding:12px 0;
 }
 
 .nav button.active {
@@ -111,24 +121,32 @@ table button {
 
 <div class="card">
 
-<input type="text" id="name" placeholder="Name">
+<label>Name</label>
+<input type="text" id="name">
 
+<label>Start Date</label>
 <input type="date" id="start">
+
+<label>End Date</label>
 <input type="date" id="end">
 
-<input type="number" id="principal" placeholder="Principal (Lakhs)">
+<label>Principal (Lakhs)</label>
+<input type="number" id="principal">
 
+<label>Rate</label>
 <select id="rate">
 <option value="0.12">12%</option>
 <option value="0.18">18%</option>
 <option value="0.24">24%</option>
 </select>
 
+<label>Type</label>
 <select id="type">
 <option value="simple">Simple</option>
 <option value="compound">Compound</option>
 </select>
 
+<label>Status</label>
 <select id="status">
 <option value="pending">Pending</option>
 <option value="paid">Paid</option>
@@ -150,14 +168,18 @@ Total ₹ <span id="total">0</span>
 <!-- RECORDS -->
 <div id="records" style="display:none">
 <div class="card">
+
+<button onclick="exportData()">Export to Excel</button>
+
 <table>
 <thead>
 <tr>
-<th>Name</th><th>P</th><th>Type</th><th>Status</th><th>Total</th><th>Action</th>
+<th>Name</th><th>P</th><th>Type</th><th>Status</th><th>Total</th><th>X</th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
 </table>
+
 </div>
 </div>
 
@@ -188,145 +210,126 @@ let data = JSON.parse(localStorage.getItem("financeData")) || [];
 let editIndex = -1;
 
 function saveData(){
-  localStorage.setItem("financeData", JSON.stringify(data));
+localStorage.setItem("financeData", JSON.stringify(data));
 }
 
 function showPage(page,btn){
-  ["home","records","summary"].forEach(p=>{
-    document.getElementById(p).style.display="none";
-  });
-  document.getElementById(page).style.display="block";
+["home","records","summary"].forEach(p=>{
+document.getElementById(p).style.display="none";
+});
+document.getElementById(page).style.display="block";
 
-  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
+document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
 }
 
 function calculate(){
 
-  let principalInput = document.getElementById("principal").value;
-  let startInput = document.getElementById("start").value;
-  let endInput = document.getElementById("end").value;
+let p = parseFloat(document.getElementById("principal").value || 0);
+let rate = parseFloat(document.getElementById("rate").value);
+let type = document.getElementById("type").value;
 
-  if (!principalInput) {
-    alert("Enter principal");
-    return;
-  }
+let start = new Date(document.getElementById("start").value);
+let end = new Date(document.getElementById("end").value);
 
-  if (!startInput || !endInput) {
-    alert("Select dates");
-    return;
-  }
+let years = (end - start) / (1000*60*60*24*365);
+if(isNaN(years) || years <= 0) return alert("Invalid dates");
 
-  let p = parseFloat(principalInput);
-  let rate = parseFloat(document.getElementById("rate").value);
-  let type = document.getElementById("type").value;
+let principalAmt = p * 100000;
+let interest;
 
-  let start = new Date(startInput);
-  let end = new Date(endInput);
+if(type === "compound"){
+interest = principalAmt * Math.pow(1 + rate, years) - principalAmt;
+}else{
+interest = principalAmt * rate * years;
+}
 
-  let years = (end - start) / (1000*60*60*24*365);
+let monthly = years > 0 ? interest / (years * 12) : 0;
 
-  if(isNaN(years) || years <= 0) {
-    alert("Invalid dates");
-    return;
-  }
-
-  let principalAmt = p * 100000;
-  let interest;
-
-  if(type === "compound"){
-    interest = principalAmt * Math.pow(1 + rate, years) - principalAmt;
-  } else {
-    interest = principalAmt * rate * years;
-  }
-
-  let monthly = years > 0 ? interest / (years * 12) : 0;
-
-  document.getElementById("interest").innerText = interest.toFixed(0);
-  document.getElementById("monthly").innerText = monthly.toFixed(0);
-  document.getElementById("total").innerText = (principalAmt + interest).toFixed(0);
+document.getElementById("interest").innerText = interest.toFixed(0);
+document.getElementById("monthly").innerText = monthly.toFixed(0);
+document.getElementById("total").innerText = (principalAmt + interest).toFixed(0);
 }
 
 function saveEntry(){
 
-  let record = {
-    name: document.getElementById("name").value || "No Name",
-    principal: parseFloat(document.getElementById("principal").value || 0),
-    type: document.getElementById("type").value,
-    status: document.getElementById("status").value,
-    total: parseFloat(document.getElementById("total").innerText || 0)
-  };
+let record = {
+name: document.getElementById("name").value || "No Name",
+principal: parseFloat(document.getElementById("principal").value || 0),
+type: document.getElementById("type").value,
+status: document.getElementById("status").value,
+total: parseFloat(document.getElementById("total").innerText || 0)
+};
 
-  if(editIndex === -1){
-    data.push(record);
-  } else {
-    data[editIndex] = record;
-    editIndex = -1;
-  }
+if(editIndex === -1){
+data.push(record);
+}else{
+data[editIndex] = record;
+editIndex = -1;
+}
 
-  saveData();
-  render();
+saveData();
+render();
 
-  document.getElementById("name").value = "";
-  document.getElementById("principal").value = "";
-  document.getElementById("start").value = "";
-  document.getElementById("end").value = "";
+document.getElementById("name").value = "";
+document.getElementById("principal").value = "";
+document.getElementById("start").value = "";
+document.getElementById("end").value = "";
 
-  alert("Saved successfully");
+alert("Saved successfully");
 }
 
 function render(){
 
-  let table = document.getElementById("table");
-  table.innerHTML = "";
+let table = document.getElementById("table");
+table.innerHTML = "";
 
-  let ti=0, tr=0, pending=0, paid=0;
+let ti=0,tr=0,pending=0,paid=0;
 
-  data.forEach((r,i)=>{
+data.forEach((r,i)=>{
 
-    table.innerHTML += `
-    <tr>
-      <td>${r.name}</td>
-      <td>${r.principal}</td>
-      <td>${r.type}</td>
-      <td style="color:${r.status==='paid'?'#22c55e':'#f59e0b'}">${r.status}</td>
-      <td>${r.total}</td>
-      <td>
-        <button onclick="edit(${i})">Edit</button>
-        <button onclick="del(${i})">X</button>
-      </td>
-    </tr>`;
+table.innerHTML += `
+<tr>
+<td>${r.name}</td>
+<td>${r.principal}</td>
+<td>${r.type}</td>
+<td>${r.status}</td>
+<td>${r.total}</td>
+<td><button onclick="del(${i})">X</button></td>
+</tr>`;
 
-    ti += r.principal * 100000;
-    tr += r.total;
+ti += r.principal * 100000;
+tr += r.total;
 
-    if(r.status === "pending") pending += r.total;
-    else paid += r.total;
-  });
+if(r.status === "pending") pending += r.total;
+else paid += r.total;
+});
 
-  document.getElementById("totalInvest").innerText = ti.toFixed(0);
-  document.getElementById("totalReturn").innerText = tr.toFixed(0);
-  document.getElementById("pendingAmt").innerText = pending.toFixed(0);
-  document.getElementById("paidAmt").innerText = paid.toFixed(0);
-}
-
-function edit(i){
-  let r = data[i];
-
-  document.getElementById("name").value = r.name;
-  document.getElementById("principal").value = r.principal;
-  document.getElementById("type").value = r.type;
-  document.getElementById("status").value = r.status;
-
-  editIndex = i;
-
-  showPage('home', document.querySelectorAll(".nav button")[0]);
+totalInvest.innerText = ti.toFixed(0);
+totalReturn.innerText = tr.toFixed(0);
+pendingAmt.innerText = pending.toFixed(0);
+paidAmt.innerText = paid.toFixed(0);
 }
 
 function del(i){
-  data.splice(i,1);
-  saveData();
-  render();
+data.splice(i,1);
+saveData();
+render();
+}
+
+function exportData(){
+
+let csv = "Name,Principal,Type,Status,Total\n";
+
+data.forEach(r=>{
+csv += `${r.name},${r.principal},${r.type},${r.status},${r.total}\n`;
+});
+
+let blob = new Blob([csv], {type: "text/csv"});
+let a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "finance-data.csv";
+a.click();
 }
 
 render();
