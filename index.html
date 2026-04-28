@@ -5,10 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance Tracker</title>
 
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
 <style>
-
 body {
   font-family: 'Segoe UI';
   background: #0f172a;
@@ -17,8 +14,6 @@ body {
 }
 
 .header {
-  position: sticky;
-  top: 0;
   background: linear-gradient(135deg,#2563eb,#9333ea);
   padding: 15px;
   text-align: center;
@@ -60,25 +55,6 @@ table button {
   padding: 6px 10px;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 10px;
-}
-
-.stat {
-  background: #2563eb;
-  padding: 10px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.stat span {
-  display:block;
-  font-size:18px;
-  font-weight:bold;
-}
-
 table {
   width:100%;
   border-collapse: collapse;
@@ -92,10 +68,6 @@ th, td {
 
 tr:hover {
   background: #334155;
-}
-
-.overdue {
-  background: #7f1d1d !important;
 }
 
 .nav {
@@ -117,7 +89,6 @@ tr:hover {
 .nav button.active {
   color:white;
 }
-
 </style>
 </head>
 
@@ -132,7 +103,7 @@ tr:hover {
 
 <div class="card">
 
-<label>Name (optional)</label>
+<label>Name</label>
 <input type="text" id="name">
 
 <label>Start Date</label>
@@ -151,6 +122,12 @@ tr:hover {
 <option value="0.24">24%</option>
 </select>
 
+<label>Interest Type</label>
+<select id="type">
+<option value="simple">Simple</option>
+<option value="compound">Compound</option>
+</select>
+
 <label>Status</label>
 <select id="status">
 <option value="pending">Pending</option>
@@ -164,6 +141,7 @@ tr:hover {
 
 <div class="card">
 Interest ₹ <span id="interest">0</span><br>
+Monthly ₹ <span id="monthly">0</span><br>
 Total ₹ <span id="total">0</span>
 </div>
 
@@ -177,6 +155,7 @@ Total ₹ <span id="total">0</span>
 <tr>
 <th>Name</th>
 <th>P</th>
+<th>Type</th>
 <th>Status</th>
 <th>Total</th>
 <th>X</th>
@@ -187,25 +166,12 @@ Total ₹ <span id="total">0</span>
 </div>
 </div>
 
-<!-- SUMMARY -->
-<div id="summary" style="display:none">
-
-<div class="stats">
-<div class="stat">Pending ₹ <span id="pendingAmt">0</span></div>
-<div class="stat">Paid ₹ <span id="paidAmt">0</span></div>
-<div class="stat">Total Invest ₹ <span id="totalInvest">0</span></div>
-<div class="stat">Total Return ₹ <span id="totalReturn">0</span></div>
-</div>
-
-</div>
-
 </div>
 
 <!-- NAV -->
 <div class="nav">
 <button onclick="showPage('home',this)" class="active">Home</button>
 <button onclick="showPage('records',this)">Records</button>
-<button onclick="showPage('summary',this)">Summary</button>
 </div>
 
 <script>
@@ -217,7 +183,7 @@ localStorage.setItem("financeData", JSON.stringify(data));
 }
 
 function showPage(page,btn){
-["home","records","summary"].forEach(p=>{
+["home","records"].forEach(p=>{
 document.getElementById(p).style.display="none";
 });
 document.getElementById(page).style.display="block";
@@ -228,13 +194,30 @@ btn.classList.add("active");
 
 function calculate(){
 
-let p=parseFloat(document.getElementById("principal").value || 0);
-let rate=parseFloat(document.getElementById("rate").value || 0.12);
+let p = parseFloat(document.getElementById("principal").value || 0);
+let rate = parseFloat(document.getElementById("rate").value);
+let type = document.getElementById("type").value;
 
-let interest = p*100000*rate;
+let start = new Date(document.getElementById("start").value);
+let end = new Date(document.getElementById("end").value);
 
-document.getElementById("interest").innerText=interest.toFixed(0);
-document.getElementById("total").innerText=(p*100000+interest).toFixed(0);
+let years = (end - start) / (1000*60*60*24*365);
+if(isNaN(years) || years <= 0) return alert("Invalid dates");
+
+let principalAmt = p * 100000;
+let interest;
+
+if(type === "compound"){
+  interest = principalAmt * Math.pow((1 + rate), years) - principalAmt;
+}else{
+  interest = principalAmt * rate * years;
+}
+
+let monthly = interest / (years * 12);
+
+document.getElementById("interest").innerText = interest.toFixed(0);
+document.getElementById("monthly").innerText = monthly.toFixed(0);
+document.getElementById("total").innerText = (principalAmt + interest).toFixed(0);
 
 }
 
@@ -243,9 +226,9 @@ function addEntry(){
 let record={
 name: document.getElementById("name").value || "No Name",
 principal: parseFloat(document.getElementById("principal").value || 0),
+type: document.getElementById("type").value,
 status: document.getElementById("status").value,
-total: parseFloat(document.getElementById("total").innerText || 0),
-end: document.getElementById("end").value
+total: parseFloat(document.getElementById("total").innerText || 0)
 };
 
 data.push(record);
@@ -259,38 +242,17 @@ function render(){
 let table=document.getElementById("table");
 table.innerHTML="";
 
-let pending=0,paid=0,totalInvest=0,totalReturn=0;
-
-let today=new Date();
-
 data.forEach((r,i)=>{
-
-let overdueClass="";
-if(r.status==="pending" && r.end && new Date(r.end)<today){
-overdueClass="overdue";
-}
-
 table.innerHTML+=`
-<tr class="${overdueClass}">
+<tr>
 <td>${r.name}</td>
 <td>${r.principal}</td>
+<td>${r.type}</td>
 <td style="color:${r.status==='paid'?'#22c55e':'#f59e0b'}">${r.status}</td>
 <td>${r.total}</td>
 <td><button onclick="del(${i})">X</button></td>
 </tr>`;
-
-totalInvest += r.principal*100000;
-totalReturn += r.total;
-
-if(r.status==="pending") pending+=r.total;
-else paid+=r.total;
-
 });
-
-document.getElementById("pendingAmt").innerText=pending.toFixed(0);
-document.getElementById("paidAmt").innerText=paid.toFixed(0);
-document.getElementById("totalInvest").innerText=totalInvest.toFixed(0);
-document.getElementById("totalReturn").innerText=totalReturn.toFixed(0);
 
 }
 
