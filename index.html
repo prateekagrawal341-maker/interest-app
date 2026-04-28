@@ -40,6 +40,15 @@ button {
   background: #eef;
   padding: 10px;
 }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
 </style>
 </head>
 
@@ -91,63 +100,155 @@ button {
 </div>
 
 <button onclick="calculate()">Calculate</button>
+<button onclick="addEntry()">Add / Update</button>
+</div>
+
+<div class="card">
+<h3>Loan Records</h3>
+<button onclick="exportToExcel()">Export</button>
+
+<table id="ledgerTable">
+<thead>
+<tr>
+<th>Start</th>
+<th>End</th>
+<th>Principal</th>
+<th>Rate</th>
+<th>Type</th>
+<th>Interest</th>
+<th>Total</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 </div>
 
 </div>
 
 <script>
 
+let records = [];
+let editIndex = -1;
+
 function calculate() {
 
-  let start = new Date(document.getElementById("start").value);
-  let end = new Date(document.getElementById("end").value);
+  let startVal = start.value;
+  let endVal = end.value;
 
-  if (!document.getElementById("start").value || !document.getElementById("end").value) {
-    alert("Select dates");
-    return;
-  }
+  if (!startVal || !endVal) return alert("Select dates");
 
-  let days = (end - start) / (1000*60*60*24);
-  if (days <= 0) {
-    alert("Invalid date");
-    return;
-  }
+  let days = (new Date(endVal) - new Date(startVal)) / (1000*60*60*24);
+  if (days <= 0) return alert("Invalid date");
 
   let years = days / 365;
 
-  let input = document.getElementById("principal").value.trim();
-
-  if (input === "") {
-    alert("Enter principal");
-    return;
-  }
+  let input = principal.value.trim();
+  if (!input) return alert("Enter principal");
 
   let p = parseFloat(input);
+  if (isNaN(p) || p <= 0) return alert("Invalid principal");
 
-  if (isNaN(p) || p <= 0) {
-    alert("Invalid principal");
-    return;
-  }
-
-  let principal = p * 100000;
-  let rate = parseFloat(document.getElementById("rate").value);
+  let principalAmt = p * 100000;
+  let rate = parseFloat(rateEl.value);
   let type = document.getElementById("type").value;
 
   let interest;
 
-  if (type === "simple") {
-    interest = principal * rate * years;
+  if (type === "compound") {
+    let amount = principalAmt * Math.pow((1 + rate), years);
+    interest = amount - principalAmt;
   } else {
-    let amount = principal * Math.pow((1 + rate), years);
-    interest = amount - principal;
+    interest = principalAmt * rate * years;
   }
 
   let monthly = interest / 12;
+  let total = principalAmt + interest;
 
-  document.getElementById("interest").innerText = interest.toFixed(0);
-  document.getElementById("monthly").innerText = monthly.toFixed(0);
-  document.getElementById("totalYear").innerText = (principal + interest).toFixed(0);
+  interestEl.innerText = interest.toFixed(0);
+  monthlyEl.innerText = monthly.toFixed(0);
+  totalYear.innerText = total.toFixed(0);
 }
+
+function addEntry() {
+
+  if (interestEl.innerText === "0") return alert("Calculate first");
+
+  let record = {
+    start: start.value,
+    end: end.value,
+    principal: principal.value,
+    rate: rateEl.value,
+    type: document.getElementById("type").value,
+    interest: interestEl.innerText,
+    total: totalYear.innerText
+  };
+
+  if (editIndex === -1) records.push(record);
+  else { records[editIndex] = record; editIndex = -1; }
+
+  renderTable();
+}
+
+function renderTable() {
+  let tbody = document.querySelector("#ledgerTable tbody");
+  tbody.innerHTML = "";
+
+  records.forEach((r,i) => {
+    tbody.innerHTML += `
+    <tr>
+      <td>${r.start}</td>
+      <td>${r.end}</td>
+      <td>${r.principal} L</td>
+      <td>${r.rate*100}%</td>
+      <td>${r.type}</td>
+      <td>${r.interest}</td>
+      <td>${r.total}</td>
+      <td>
+        <button onclick="editRow(${i})">Edit</button>
+        <button onclick="deleteRow(${i})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function deleteRow(i) {
+  records.splice(i,1);
+  renderTable();
+}
+
+function editRow(i) {
+  let r = records[i];
+  start.value = r.start;
+  end.value = r.end;
+  principal.value = r.principal;
+  rateEl.value = r.rate;
+  document.getElementById("type").value = r.type;
+
+  interestEl.innerText = r.interest;
+  totalYear.innerText = r.total;
+
+  editIndex = i;
+}
+
+function exportToExcel() {
+  let csv = "Start,End,Principal,Rate,Type,Interest,Total\n";
+  records.forEach(r=>{
+    csv += `${r.start},${r.end},${r.principal},${r.rate*100},${r.type},${r.interest},${r.total}\n`;
+  });
+
+  let blob = new Blob([csv]);
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "data.csv";
+  a.click();
+}
+
+// shortcuts
+let interestEl = document.getElementById("interest");
+let monthlyEl = document.getElementById("monthly");
+let totalYear = document.getElementById("totalYear");
+let rateEl = document.getElementById("rate");
 
 </script>
 
