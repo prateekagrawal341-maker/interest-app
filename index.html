@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance App</title>
+<title>Finance Tracker</title>
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
+
 body {
   font-family: 'Segoe UI';
   background: #0f172a;
@@ -54,6 +55,11 @@ button {
   color: white;
 }
 
+table button {
+  width: auto;
+  padding: 6px 10px;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(2,1fr);
@@ -84,6 +90,10 @@ th, td {
   text-align:center;
 }
 
+tr:hover {
+  background: #334155;
+}
+
 .overdue {
   background: #7f1d1d !important;
 }
@@ -107,6 +117,7 @@ th, td {
 .nav button.active {
   color:white;
 }
+
 </style>
 </head>
 
@@ -217,8 +228,8 @@ btn.classList.add("active");
 
 function calculate(){
 
-let p=parseFloat(principal.value || 0);
-let rate=parseFloat(rateEl.value || 0.12);
+let p=parseFloat(document.getElementById("principal").value || 0);
+let rate=parseFloat(document.getElementById("rate").value || 0.12);
 
 let interest = p*100000*rate;
 
@@ -230,11 +241,11 @@ document.getElementById("total").innerText=(p*100000+interest).toFixed(0);
 function addEntry(){
 
 let record={
-name:name.value || "No Name",
-principal:parseFloat(principal.value || 0),
-status:status.value,
-total:parseFloat(document.getElementById("total").innerText || 0),
-end:end.value
+name: document.getElementById("name").value || "No Name",
+principal: parseFloat(document.getElementById("principal").value || 0),
+status: document.getElementById("status").value,
+total: parseFloat(document.getElementById("total").innerText || 0),
+end: document.getElementById("end").value
 };
 
 data.push(record);
@@ -263,7 +274,7 @@ table.innerHTML+=`
 <tr class="${overdueClass}">
 <td>${r.name}</td>
 <td>${r.principal}</td>
-<td>${r.status}</td>
+<td style="color:${r.status==='paid'?'#22c55e':'#f59e0b'}">${r.status}</td>
 <td>${r.total}</td>
 <td><button onclick="del(${i})">X</button></td>
 </tr>`;
@@ -276,10 +287,10 @@ else paid+=r.total;
 
 });
 
-pendingAmt.innerText=pending.toFixed(0);
-paidAmt.innerText=paid.toFixed(0);
-totalInvest.innerText=totalInvest.toFixed(0);
-totalReturn.innerText=totalReturn.toFixed(0);
+document.getElementById("pendingAmt").innerText=pending.toFixed(0);
+document.getElementById("paidAmt").innerText=paid.toFixed(0);
+document.getElementById("totalInvest").innerText=totalInvest.toFixed(0);
+document.getElementById("totalReturn").innerText=totalReturn.toFixed(0);
 
 }
 
@@ -288,8 +299,6 @@ data.splice(i,1);
 saveData();
 render();
 }
-
-let rateEl=document.getElementById("rate");
 
 render();
 
