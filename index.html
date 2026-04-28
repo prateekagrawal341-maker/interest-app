@@ -171,7 +171,7 @@ Total ₹ <span id="total">0</span>
 <div class="stat">Paid ₹ <span id="paidAmt">0</span></div>
 </div>
 
-<canvas id="chart" width="300" height="200"></canvas>
+<canvas id="chart" style="width:100%; height:200px;"></canvas>
 
 </div>
 
@@ -205,15 +205,33 @@ function showPage(page,btn){
 
 function calculate(){
 
-  let p = parseFloat(document.getElementById("principal").value || 0);
+  let principalInput = document.getElementById("principal").value;
+  let startInput = document.getElementById("start").value;
+  let endInput = document.getElementById("end").value;
+
+  if (!principalInput) {
+    alert("Enter principal");
+    return;
+  }
+
+  if (!startInput || !endInput) {
+    alert("Select dates");
+    return;
+  }
+
+  let p = parseFloat(principalInput);
   let rate = parseFloat(document.getElementById("rate").value);
   let type = document.getElementById("type").value;
 
-  let start = new Date(document.getElementById("start").value);
-  let end = new Date(document.getElementById("end").value);
+  let start = new Date(startInput);
+  let end = new Date(endInput);
 
   let years = (end - start) / (1000*60*60*24*365);
-  if(isNaN(years) || years <= 0) return alert("Invalid dates");
+
+  if(isNaN(years) || years <= 0) {
+    alert("Invalid dates");
+    return;
+  }
 
   let principalAmt = p * 100000;
   let interest;
@@ -224,7 +242,7 @@ function calculate(){
     interest = principalAmt * rate * years;
   }
 
-  let monthly = interest / (years * 12);
+  let monthly = years > 0 ? interest / (years * 12) : 0;
 
   document.getElementById("interest").innerText = interest.toFixed(0);
   document.getElementById("monthly").innerText = monthly.toFixed(0);
@@ -250,6 +268,15 @@ function saveEntry(){
 
   saveData();
   render();
+
+  // Clear form
+  document.getElementById("name").value = "";
+  document.getElementById("principal").value = "";
+  document.getElementById("start").value = "";
+  document.getElementById("end").value = "";
+
+  // Feedback
+  alert("Saved successfully");
 }
 
 function render(){
