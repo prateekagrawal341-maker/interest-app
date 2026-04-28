@@ -6,7 +6,7 @@
 
 <style>
 body {
-  font-family: 'Segoe UI';
+  font-family: Arial;
   background: #f1f5f9;
   padding: 20px;
 }
@@ -133,8 +133,8 @@ let editIndex = -1;
 
 function calculate() {
 
-  let startVal = start.value;
-  let endVal = end.value;
+  let startVal = document.getElementById("start").value;
+  let endVal = document.getElementById("end").value;
 
   if (!startVal || !endVal) return alert("Select dates");
 
@@ -143,14 +143,14 @@ function calculate() {
 
   let years = days / 365;
 
-  let input = principal.value.trim();
+  let input = document.getElementById("principal").value.trim();
   if (!input) return alert("Enter principal");
 
   let p = parseFloat(input);
   if (isNaN(p) || p <= 0) return alert("Invalid principal");
 
   let principalAmt = p * 100000;
-  let rate = parseFloat(rateEl.value);
+  let rate = parseFloat(document.getElementById("rate").value);
   let type = document.getElementById("type").value;
 
   let interest;
@@ -165,23 +165,26 @@ function calculate() {
   let monthly = interest / 12;
   let total = principalAmt + interest;
 
-  interestEl.innerText = interest.toFixed(0);
-  monthlyEl.innerText = monthly.toFixed(0);
-  totalYear.innerText = total.toFixed(0);
+  document.getElementById("interest").innerText = interest.toFixed(0);
+  document.getElementById("monthly").innerText = monthly.toFixed(0);
+  document.getElementById("totalYear").innerText = total.toFixed(0);
 }
 
 function addEntry() {
 
-  if (interestEl.innerText === "0") return alert("Calculate first");
+  if (document.getElementById("interest").innerText === "0") {
+    alert("Calculate first");
+    return;
+  }
 
   let record = {
-    start: start.value,
-    end: end.value,
-    principal: principal.value,
-    rate: rateEl.value,
+    start: document.getElementById("start").value,
+    end: document.getElementById("end").value,
+    principal: document.getElementById("principal").value,
+    rate: document.getElementById("rate").value,
     type: document.getElementById("type").value,
-    interest: interestEl.innerText,
-    total: totalYear.innerText
+    interest: document.getElementById("interest").innerText,
+    total: document.getElementById("totalYear").innerText
   };
 
   if (editIndex === -1) records.push(record);
@@ -219,20 +222,22 @@ function deleteRow(i) {
 
 function editRow(i) {
   let r = records[i];
-  start.value = r.start;
-  end.value = r.end;
-  principal.value = r.principal;
-  rateEl.value = r.rate;
+
+  document.getElementById("start").value = r.start;
+  document.getElementById("end").value = r.end;
+  document.getElementById("principal").value = r.principal;
+  document.getElementById("rate").value = r.rate;
   document.getElementById("type").value = r.type;
 
-  interestEl.innerText = r.interest;
-  totalYear.innerText = r.total;
+  document.getElementById("interest").innerText = r.interest;
+  document.getElementById("totalYear").innerText = r.total;
 
   editIndex = i;
 }
 
 function exportToExcel() {
   let csv = "Start,End,Principal,Rate,Type,Interest,Total\n";
+
   records.forEach(r=>{
     csv += `${r.start},${r.end},${r.principal},${r.rate*100},${r.type},${r.interest},${r.total}\n`;
   });
@@ -243,12 +248,6 @@ function exportToExcel() {
   a.download = "data.csv";
   a.click();
 }
-
-// shortcuts
-let interestEl = document.getElementById("interest");
-let monthlyEl = document.getElementById("monthly");
-let totalYear = document.getElementById("totalYear");
-let rateEl = document.getElementById("rate");
 
 </script>
 
