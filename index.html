@@ -173,8 +173,19 @@ function calculate() {
 
   let years = days / 365;
 
-  let p = parseFloat(document.getElementById("principal").value);
-  if (isNaN(p) || p < 0.1 || p > 50) return alert("Invalid principal");
+let input = document.getElementById("principal").value.trim();
+
+if (input === "") {
+  alert("Enter principal");
+  return;
+}
+
+let p = parseFloat(input);
+
+if (isNaN(p) || p <= 0) {
+  alert("Invalid principal");
+  return;
+}
 
   let principal = p * 100000;
   let rate = parseFloat(document.getElementById("rate").value);
