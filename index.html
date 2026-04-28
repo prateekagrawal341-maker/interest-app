@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance App</title>
 
 <style>
@@ -13,59 +14,59 @@ body {
 }
 
 .header {
-  padding: 20px;
+  padding: 18px;
   background: linear-gradient(135deg,#2563eb,#9333ea);
   text-align: center;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
 }
 
 .container {
-  max-width: 1000px;
-  margin: auto;
-  padding: 20px;
+  padding: 15px;
 }
 
 .card {
   background: #1e293b;
-  padding: 20px;
-  border-radius: 15px;
+  padding: 18px;
+  border-radius: 16px;
   margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 15px;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 input, select {
-  padding: 12px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: 10px;
   border: none;
+  font-size: 16px;
 }
 
 button {
-  padding: 12px;
-  border-radius: 8px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
   border: none;
+  font-size: 16px;
+  margin-top: 12px;
   background: #2563eb;
   color: white;
-  margin-top: 10px;
-  cursor: pointer;
 }
 
 .stats {
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .stat {
-  flex:1;
   background: #1e293b;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 12px;
   text-align: center;
 }
 
@@ -79,7 +80,6 @@ th, td {
   border-bottom: 1px solid #334155;
   text-align: center;
 }
-
 </style>
 </head>
 
@@ -90,9 +90,9 @@ th, td {
 <div class="container">
 
 <div class="stats">
-<div class="stat">Investment<br>₹ <span id="totalInvest">0</span></div>
-<div class="stat">Interest<br>₹ <span id="totalInterest">0</span></div>
-<div class="stat">Returns<br>₹ <span id="totalReturn">0</span></div>
+<div class="stat">Investment ₹ <span id="totalInvest">0</span></div>
+<div class="stat">Interest ₹ <span id="totalInterest">0</span></div>
+<div class="stat">Returns ₹ <span id="totalReturn">0</span></div>
 </div>
 
 <div class="card">
@@ -110,8 +110,8 @@ th, td {
 </select>
 
 <select id="type">
-<option value="simple">Simple</option>
-<option value="compound">Compound</option>
+<option value="simple">Simple Interest</option>
+<option value="compound">Compound Interest</option>
 </select>
 
 <select id="compoundType">
@@ -147,7 +147,6 @@ Total: ₹ <span id="totalYear">0</span>
 </tr>
 </thead>
 <tbody id="table"></tbody>
-
 </table>
 
 </div>
@@ -173,6 +172,8 @@ let start = new Date(document.getElementById("start").value);
 let end = new Date(document.getElementById("end").value);
 
 let years = (end - start)/(1000*60*60*24*365);
+
+if(isNaN(years) || years <= 0) return alert("Invalid dates");
 
 let interest;
 
