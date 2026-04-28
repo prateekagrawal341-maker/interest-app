@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance App</title>
 
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <style>
+
 body {
   font-family: 'Segoe UI';
   background: #0f172a;
@@ -13,6 +17,7 @@ body {
   margin: 0;
 }
 
+/* HEADER */
 .header {
   position: sticky;
   top: 0;
@@ -20,38 +25,53 @@ body {
   padding: 15px;
   text-align: center;
   font-weight: bold;
+  font-size: 18px;
 }
 
+/* CONTAINER */
 .container {
   padding: 15px;
-  padding-bottom: 70px;
+  padding-bottom: 80px;
 }
 
+/* CARD */
 .card {
   background: #1e293b;
   padding: 15px;
-  border-radius: 12px;
+  border-radius: 15px;
   margin-bottom: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  animation: fadeIn 0.4s ease;
 }
 
+/* INPUTS */
 input, select {
   width: 100%;
-  padding: 12px;
-  margin-top: 5px;
-  border-radius: 8px;
+  padding: 13px;
+  margin-top: 6px;
+  border-radius: 10px;
   border: none;
+  font-size: 15px;
 }
 
+/* BUTTON */
 button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   margin-top: 10px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   background: #2563eb;
   color: white;
+  font-size: 15px;
+  transition: 0.2s;
 }
 
+button:active {
+  transform: scale(0.96);
+}
+
+/* STATS */
 .stats {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -71,6 +91,7 @@ button {
   font-weight:bold;
 }
 
+/* TABLE */
 table {
   width:100%;
   border-collapse: collapse;
@@ -82,21 +103,41 @@ th, td {
   text-align:center;
 }
 
+/* NAVBAR */
 .nav {
   position: fixed;
   bottom: 0;
   width: 100%;
   display: flex;
   background: #1e293b;
+  border-top: 1px solid #334155;
 }
 
 .nav button {
   flex:1;
   background:none;
   border:none;
-  color:white;
-  padding:12px;
+  color:#cbd5f5;
+  padding:10px;
+  font-size:12px;
 }
+
+.nav button.active {
+  color:white;
+}
+
+/* ICON */
+.icon {
+  display:block;
+  font-size:22px;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(10px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
 </style>
 </head>
 
@@ -183,9 +224,20 @@ Total ₹ <span id="totalYear">0</span>
 
 <!-- NAV -->
 <div class="nav">
-<button onclick="show('home')">Home</button>
-<button onclick="show('records')">Records</button>
-<button onclick="show('summary')">Summary</button>
+<button onclick="showPage('home', this)" class="active">
+<span class="material-icons icon">home</span>
+Home
+</button>
+
+<button onclick="showPage('records', this)">
+<span class="material-icons icon">list</span>
+Records
+</button>
+
+<button onclick="showPage('summary', this)">
+<span class="material-icons icon">analytics</span>
+Summary
+</button>
 </div>
 
 <script>
@@ -196,26 +248,31 @@ function saveData(){
   localStorage.setItem("financeData", JSON.stringify(data));
 }
 
-function show(page){
-  home.style.display="none";
-  records.style.display="none";
-  summary.style.display="none";
-  document.getElementById(page).style.display="block";
+function showPage(page, btn){
+
+["home","records","summary"].forEach(p=>{
+document.getElementById(p).style.display="none";
+});
+
+document.getElementById(page).style.display="block";
+
+document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
 }
 
 function calculate(){
 
-let p=parseFloat(principal.value);
+let p=parseFloat(document.getElementById("principal").value);
 if(!p) return alert("Enter principal");
 
 let principalAmt=p*100000;
 
-let rate=parseFloat(rate.value);
+let rate=parseFloat(document.getElementById("rate").value);
 let type=document.getElementById("type").value;
 let compType=document.getElementById("compoundType").value;
 
-let startDate=new Date(start.value);
-let endDate=new Date(end.value);
+let startDate=new Date(document.getElementById("start").value);
+let endDate=new Date(document.getElementById("end").value);
 
 let years=(endDate-startDate)/(1000*60*60*24*365);
 if(isNaN(years)||years<=0) return alert("Invalid dates");
@@ -233,19 +290,19 @@ interest=principalAmt*Math.pow(1+rate,years)-principalAmt;
 interest=principalAmt*rate*years;
 }
 
-interestEl.innerText=interest.toFixed(0);
-monthly.innerText=(interest/12).toFixed(0);
-totalYear.innerText=(principalAmt+interest).toFixed(0);
+document.getElementById("interest").innerText=interest.toFixed(0);
+document.getElementById("monthly").innerText=(interest/12).toFixed(0);
+document.getElementById("totalYear").innerText=(principalAmt+interest).toFixed(0);
 
 }
 
 function addEntry(){
 
 let record={
-principal:parseFloat(principal.value),
-type:type.value,
-interest:parseFloat(interestEl.innerText),
-total:parseFloat(totalYear.innerText)
+principal:parseFloat(document.getElementById("principal").value),
+type:document.getElementById("type").value,
+interest:parseFloat(document.getElementById("interest").innerText),
+total:parseFloat(document.getElementById("totalYear").innerText)
 };
 
 data.push(record);
@@ -256,6 +313,7 @@ render();
 
 function render(){
 
+let table=document.getElementById("table");
 table.innerHTML="";
 
 let ti=0,ti2=0,tr=0;
@@ -275,9 +333,9 @@ ti2+=r.interest;
 tr+=r.total;
 });
 
-totalInvest.innerText=ti.toFixed(0);
-totalInterest.innerText=ti2.toFixed(0);
-totalReturn.innerText=tr.toFixed(0);
+document.getElementById("totalInvest").innerText=ti.toFixed(0);
+document.getElementById("totalInterest").innerText=ti2.toFixed(0);
+document.getElementById("totalReturn").innerText=tr.toFixed(0);
 
 drawChart(ti,ti2);
 
@@ -291,11 +349,12 @@ render();
 
 function drawChart(invest,interest){
 
-let ctx = document.getElementById("chart").getContext("2d");
+let ctx=document.getElementById("chart").getContext("2d");
 
 ctx.clearRect(0,0,300,200);
 
 let total=invest+interest;
+if(total===0) return;
 
 let investH=(invest/total)*150;
 let intH=(interest/total)*150;
@@ -311,10 +370,6 @@ ctx.fillText("Invest",50,190);
 ctx.fillText("Profit",150,190);
 }
 
-// shortcuts
-let interestEl=document.getElementById("interest");
-
-// load data
 render();
 
 </script>
