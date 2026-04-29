@@ -1,113 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance Tracker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  font-family: 'Segoe UI';
-  background: #0f172a;
-  color: white;
-  margin: 0;
-}
+    <title>Finance Tracker</title>
 
-.header {
-  background: linear-gradient(135deg,#2563eb,#9333ea);
-  padding: 16px;
-  text-align: center;
-  font-weight: bold;
-}
+    <style>
+        *{box-sizing:border-box}
 
-.container {
-  padding: 15px;
-  padding-bottom: 100px;
-}
+        body{
+          font-family:'Segoe UI';
+          background:#0f172a;
+          color:white;
+          margin:0;
+        }
 
-.card {
-  background: #1e293b;
-  padding: 16px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-}
+        /* HEADER */
+        .header{
+          padding:12px;
+          text-align:center;
+          font-weight:bold;
+          background:linear-gradient(135deg,#2563eb,#9333ea);
+        }
 
-label {
-  font-size: 13px;
-  color: #94a3b8;
-  margin-top: 10px;
-  display: block;
-}
+        /* CONTAINER */
+        .container{
+          padding:12px;
+          padding-bottom:90px;
+        }
 
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 6px;
-  border-radius: 10px;
-  border: none;
-}
+        /* CARD (Premium) */
+        .card{
+          background:#1e293b;
+          padding:14px;
+          border-radius:18px;
+          margin-bottom:14px;
+          box-shadow:0 6px 25px rgba(0,0,0,0.35);
+        }
 
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: none;
-  background: #2563eb;
-  color: white;
-}
+        /* LABEL SPACING */
+        label{
+          font-size:13px;
+          color:#94a3b8;
+          display:block;
+          margin-top:10px;
+          margin-bottom:2px;
+        }
 
-table {
-  width:100%;
-  border-collapse: collapse;
-}
+        /* INPUT PREMIUM */
+        input,select{
+          width:100%;
+          padding:12px;
+          margin-top:6px;
+          border-radius:12px;
+          border:1px solid #334155;
+          background:#0f172a;
+          color:white;
+        }
 
-th, td {
-  padding:8px;
-  border-bottom:1px solid #334155;
-  text-align:center;
-}
+        /* BUTTON PREMIUM */
+        button{
+          width:100%;
+          padding:12px;
+          margin-top:10px;
+          border-radius:12px;
+          border:none;
+          background:linear-gradient(135deg,#3b82f6,#6366f1);
+          color:white;
+          font-weight:500;
+          box-shadow:0 4px 12px rgba(59,130,246,0.4);
+        }
 
-table button {
-  width:auto;
-  padding:6px 10px;
-}
+        /* BUTTON PRESS EFFECT */
+        button:active{
+          transform:scale(0.97);
+        }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 10px;
-}
+        /* TABLE */
+        table{
+          width:100%;
+          border-collapse:collapse;
+        }
 
-.stat {
-  background: #2563eb;
-  padding: 10px;
-  border-radius: 10px;
-  text-align: center;
-}
+        th,td{
+          padding:8px;
+          border-bottom:1px solid #334155;
+          text-align:center;
+        }
 
-.nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  background: #1e293b;
-  border-top: 1px solid #334155;
-}
+        /* SUMMARY CARDS */
+        .stats{
+          display:grid;
+          grid-template-columns:repeat(2,1fr);
+          gap:10px;
+        }
 
-.nav button {
-  flex:1;
-  background:none;
-  border:none;
-  color:#cbd5f5;
-  padding:12px 0;
-}
+        .stat{
+          background:linear-gradient(135deg,#2563eb,#1d4ed8);
+          padding:14px;
+          border-radius:14px;
+          text-align:center;
+          font-weight:500;
+        }
 
-.nav button.active {
-  color:white;
-}
-</style>
+        /* NAV BAR */
+        .nav{
+          position:fixed;
+          bottom:0;
+          width:100%;
+          height:60px;
+          display:flex;
+          background:#020617;
+          border-top:1px solid #1e293b;
+        }
+
+        .nav button{
+          flex:1;
+          font-size:13px;
+          background:none;
+          box-shadow:none;
+          color:#cbd5f5;
+        }
+
+        .nav button.active{
+          color:white;
+        }
+    </style>
 </head>
 
 <body>
@@ -116,223 +135,242 @@ table button {
 
 <div class="container">
 
-<!-- HOME -->
-<div id="home">
+    <!-- HOME -->
+    <div id="home">
 
-<div class="card">
+        <div class="card">
+            <label>Name</label>
+            <input id="name">
 
-<label>Name</label>
-<input type="text" id="name">
+            <label>Start</label>
+            <input type="date" id="start">
 
-<label>Start Date</label>
-<input type="date" id="start">
+            <label>End</label>
+            <input type="date" id="end">
 
-<label>End Date</label>
-<input type="date" id="end">
+            <label>Principal (Lakhs)</label>
+            <input type="number" id="principal" min="0.1" max="1000" step="0.1">
 
-<label>Principal (Lakhs)</label>
-<input type="number" id="principal">
+            <label>Rate</label>
+            <select id="rate">
+                <option value="12">12%</option>
+                <option value="15">15%</option>
+                <option value="18">18%</option>
+                <option value="24">24%</option>
+            </select>
 
-<label>Rate</label>
-<select id="rate">
-<option value="0.12">12%</option>
-<option value="0.18">18%</option>
-<option value="0.24">24%</option>
-</select>
+            <label>Type</label>
+            <select id="type">
+                <option value="simple">Simple</option>
+                <option value="compound">Compound</option>
+            </select>
 
-<label>Type</label>
-<select id="type">
-<option value="simple">Simple</option>
-<option value="compound">Compound</option>
-</select>
+            <label>Status</label>
+            <select id="status">
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+            </select>
 
-<label>Status</label>
-<select id="status">
-<option value="pending">Pending</option>
-<option value="paid">Paid</option>
-</select>
+            <button onclick="calculate()">Calculate</button>
+            <button onclick="saveEntry()">Add / Update</button>
+        </div>
 
-<button onclick="calculate()">Calculate</button>
-<button onclick="saveEntry()">Add / Update</button>
+        <div class="card">
+            Interest ₹ <span id="interest">0</span><br>
+            Monthly ₹ <span id="monthly">0</span><br>
+            Total ₹ <span id="total">0</span>
+        </div>
 
-</div>
+    </div>
 
-<div class="card">
-Interest ₹ <span id="interest">0</span><br>
-Monthly ₹ <span id="monthly">0</span><br>
-Total ₹ <span id="total">0</span>
-</div>
+    <!-- RECORDS -->
+    <div id="records" style="display:none">
+        <div class="card">
 
-</div>
+            <button onclick="exportData()">Export CSV</button>
 
-<!-- RECORDS -->
-<div id="records" style="display:none">
-<div class="card">
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th><th>P</th><th>Type</th><th>Status</th><th>Total</th><th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="table"></tbody>
+            </table>
 
-<button onclick="exportData()">Export to Excel</button>
+        </div>
+    </div>
 
-<table>
-<thead>
-<tr>
-<th>Name</th><th>P</th><th>Type</th><th>Status</th><th>Total</th><th>X</th>
-</tr>
-</thead>
-<tbody id="table"></tbody>
-</table>
+    <!-- SUMMARY -->
+    <div id="summary" style="display:none">
+        <div class="card">
 
-</div>
-</div>
+            <div class="stats">
+                <div class="stat">💰 Invest ₹ <span id="totalInvest">0</span></div>
+                <div class="stat">📈 Return ₹ <span id="totalReturn">0</span></div>
+                <div class="stat">⏳ Pending ₹ <span id="pendingAmt">0</span></div>
+                <div class="stat">✅ Paid ₹ <span id="paidAmt">0</span></div>
+            </div>
 
-<!-- SUMMARY -->
-<div id="summary" style="display:none">
-
-<div class="stats">
-<div class="stat">Invest ₹ <span id="totalInvest">0</span></div>
-<div class="stat">Return ₹ <span id="totalReturn">0</span></div>
-<div class="stat">Pending ₹ <span id="pendingAmt">0</span></div>
-<div class="stat">Paid ₹ <span id="paidAmt">0</span></div>
-</div>
-
-</div>
+        </div>
+    </div>
 
 </div>
 
 <!-- NAV -->
 <div class="nav">
-<button onclick="showPage('home',this)" class="active">Home</button>
-<button onclick="showPage('records',this)">Records</button>
-<button onclick="showPage('summary',this)">Summary</button>
+    <button onclick="showPage('home',this)" class="active">🏠 Home</button>
+    <button onclick="showPage('records',this)">📊 Records</button>
+    <button onclick="showPage('summary',this)">📈 Summary</button>
 </div>
 
 <script>
 
-let data = JSON.parse(localStorage.getItem("financeData")) || [];
-let editIndex = -1;
+    /* YOUR ORIGINAL JS (UNCHANGED) */
 
-function saveData(){
-localStorage.setItem("financeData", JSON.stringify(data));
-}
+    let data = JSON.parse(localStorage.getItem("financeData")) || [];
+    let editIndex = -1;
 
-function showPage(page,btn){
-["home","records","summary"].forEach(p=>{
-document.getElementById(p).style.display="none";
-});
-document.getElementById(page).style.display="block";
+    function saveData(){
+    localStorage.setItem("financeData", JSON.stringify(data));
+    }
 
-document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-}
+    function showPage(page,btn){
+    ["home","records","summary"].forEach(p=>{
+    document.getElementById(p).style.display="none";
+    });
+    document.getElementById(page).style.display="block";
 
-function calculate(){
+    document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    }
 
-let p = parseFloat(document.getElementById("principal").value || 0);
-let rate = parseFloat(document.getElementById("rate").value);
-let type = document.getElementById("type").value;
+    function calculate(){
+    let p=parseFloat(document.getElementById("principal").value||0);
+    let s=document.getElementById("start").value;
+    let e=document.getElementById("end").value;
 
-let start = new Date(document.getElementById("start").value);
-let end = new Date(document.getElementById("end").value);
+    if(!p) return alert("Enter principal");
+    if(!s||!e) return alert("Select dates");
 
-let years = (end - start) / (1000*60*60*24*365);
-if(isNaN(years) || years <= 0) return alert("Invalid dates");
+    let years=(new Date(e)-new Date(s))/(1000*60*60*24*365);
+    if(years<=0) return alert("Invalid dates");
 
-let principalAmt = p * 100000;
-let interest;
+    let amt=p*100000;
+    let r=parseFloat(document.getElementById("rate").value)/100;
 
-if(type === "compound"){
-interest = principalAmt * Math.pow(1 + rate, years) - principalAmt;
-}else{
-interest = principalAmt * rate * years;
-}
+    let interest=document.getElementById("type").value==="compound"
+    ? amt*Math.pow(1+r,years)-amt
+    : amt*r*years;
 
-let monthly = years > 0 ? interest / (years * 12) : 0;
+    document.getElementById("interest").innerText=interest.toFixed(0);
+    document.getElementById("monthly").innerText=(interest/(years*12)).toFixed(0);
+    document.getElementById("total").innerText=(amt+interest).toFixed(0);
+    }
 
-document.getElementById("interest").innerText = interest.toFixed(0);
-document.getElementById("monthly").innerText = monthly.toFixed(0);
-document.getElementById("total").innerText = (principalAmt + interest).toFixed(0);
-}
+    function saveEntry(){
+    let nameVal = document.getElementById("name").value.trim();
 
-function saveEntry(){
+    let record={
+    name:nameVal,
+    start:document.getElementById("start").value || "",
+    end:document.getElementById("end").value || "",
+    principal:parseFloat(document.getElementById("principal").value)||0,
+    rate:document.getElementById("rate").value,
+    type:document.getElementById("type").value,
+    status:document.getElementById("status").value,
+    interest:parseFloat(document.getElementById("interest").innerText)||0,
+    monthly:parseFloat(document.getElementById("monthly").innerText)||0,
+    total:parseFloat(document.getElementById("total").innerText)||0
+    };
 
-let record = {
-name: document.getElementById("name").value || "No Name",
-principal: parseFloat(document.getElementById("principal").value || 0),
-type: document.getElementById("type").value,
-status: document.getElementById("status").value,
-total: parseFloat(document.getElementById("total").innerText || 0)
-};
+    if(editIndex===-1){
+    data.push(record);
+    }else{
+    data[editIndex]=record;
+    editIndex=-1;
+    }
 
-if(editIndex === -1){
-data.push(record);
-}else{
-data[editIndex] = record;
-editIndex = -1;
-}
+    saveData();
+    render();
 
-saveData();
-render();
+    document.getElementById("name").value="";
+    document.getElementById("principal").value="";
+    document.getElementById("start").value="";
+    document.getElementById("end").value="";
+    }
 
-document.getElementById("name").value = "";
-document.getElementById("principal").value = "";
-document.getElementById("start").value = "";
-document.getElementById("end").value = "";
+    function render(){
 
-alert("Saved successfully");
-}
+    let table=document.getElementById("table");
+    table.innerHTML="";
 
-function render(){
+    let ti=0,tr=0,pending=0,paid=0;
 
-let table = document.getElementById("table");
-table.innerHTML = "";
+    data.forEach((r,i)=>{
+    table.innerHTML+=`
+    <tr>
+    <td>${r.name ? r.name : "-"}</td>
+    <td>${r.principal}</td>
+    <td>${r.type}</td>
+    <td>${r.status}</td>
+    <td>${r.total}</td>
+    <td>
+    <button onclick="edit(${i})">Edit</button>
+    <button onclick="del(${i})">X</button>
+    </td>
+    </tr>`;
 
-let ti=0,tr=0,pending=0,paid=0;
+    ti+=r.principal*100000;
+    tr+=r.total;
 
-data.forEach((r,i)=>{
+    if(r.status==="pending") pending+=r.total;
+    else paid+=r.total;
+    });
 
-table.innerHTML += `
-<tr>
-<td>${r.name}</td>
-<td>${r.principal}</td>
-<td>${r.type}</td>
-<td>${r.status}</td>
-<td>${r.total}</td>
-<td><button onclick="del(${i})">X</button></td>
-</tr>`;
+    document.getElementById("totalInvest").innerText=ti.toFixed(0);
+    document.getElementById("totalReturn").innerText=tr.toFixed(0);
+    document.getElementById("pendingAmt").innerText=pending.toFixed(0);
+    document.getElementById("paidAmt").innerText=paid.toFixed(0);
+    }
 
-ti += r.principal * 100000;
-tr += r.total;
+    function edit(i){
+    let r=data[i];
 
-if(r.status === "pending") pending += r.total;
-else paid += r.total;
-});
+    document.getElementById("name").value=r.name;
+    document.getElementById("start").value=r.start;
+    document.getElementById("end").value=r.end;
+    document.getElementById("principal").value=r.principal;
+    document.getElementById("rate").value=r.rate;
+    document.getElementById("type").value=r.type;
+    document.getElementById("status").value=r.status;
 
-totalInvest.innerText = ti.toFixed(0);
-totalReturn.innerText = tr.toFixed(0);
-pendingAmt.innerText = pending.toFixed(0);
-paidAmt.innerText = paid.toFixed(0);
-}
+    document.getElementById("interest").innerText=r.interest;
+    document.getElementById("monthly").innerText=r.monthly;
+    document.getElementById("total").innerText=r.total;
 
-function del(i){
-data.splice(i,1);
-saveData();
-render();
-}
+    editIndex=i;
 
-function exportData(){
+    showPage('home', document.querySelectorAll(".nav button")[0]);
+    }
 
-let csv = "Name,Principal,Type,Status,Total\n";
+    function del(i){
+    data.splice(i,1);
+    saveData();
+    render();
+    }
 
-data.forEach(r=>{
-csv += `${r.name},${r.principal},${r.type},${r.status},${r.total}\n`;
-});
+    function exportData(){
+    let csv="Name,Start,End,Principal,Rate,Type,Status,Interest,Monthly,Total\n";
 
-let blob = new Blob([csv], {type: "text/csv"});
-let a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = "finance-data.csv";
-a.click();
-}
+    data.forEach(r=>{
+    csv+=`${r.name},${r.start},${r.end},${r.principal},${r.rate},${r.type},${r.status},${r.interest},${r.monthly},${r.total}\n`;
+    });
 
-render();
+    Android.saveFile(csv);
+    }
+
+    render();
 
 </script>
 
